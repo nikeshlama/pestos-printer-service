@@ -7,16 +7,32 @@ const {
 } = require('node-thermal-printer');
 
 const API_BASE_URL = process.env.API_BASE_URL;
-const PRINTER_NAME = process.env.PRINTER_NAME || 'TEST';
+const PRINTER_MODE = process.env.PRINTER_MODE || 'TEST';
+const PRINTER_TYPE = process.env.PRINTER_TYPE || 'EPSON';
+const PRINTER_NAME = process.env.PRINTER_NAME || '';
+const PRINTER_IP = process.env.PRINTER_IP || '';
 const CHECK_INTERVAL = Number(process.env.CHECK_INTERVAL || 5000);
 
-const printer = new ThermalPrinter({
-  type: PrinterTypes.STAR,
-  interface: `printer:${PRINTER_NAME}`,
-  lineCharacter: '-'
-});
+let printer = null;
+
+if (PRINTER_MODE !== 'TEST') {
+  printer = new ThermalPrinter({
+    type: PRINTER_TYPE === 'STAR' ? PrinterTypes.STAR : PrinterTypes.EPSON,
+    interface:
+      PRINTER_MODE === 'ETHERNET'
+        ? `tcp://${PRINTER_IP}:9100`
+        : `printer:${PRINTER_NAME}`,
+    lineCharacter: '-'
+  });
+}
 
 async function printOrder(order) {
+  if (!printer) {
+    console.log('TEST MODE - not printing');
+    console.log(order);
+    return;
+  }
+
   printer.clear();
 
   printer.alignCenter();
@@ -81,12 +97,7 @@ async function checkOrders() {
     for (const order of orders) {
       console.log(`Found order #${order.orderNumber}`);
 
-      if (PRINTER_NAME === 'TEST') {
-        console.log('TEST MODE - order found but not printing');
-        console.log(order);
-      } else {
-        await printOrder(order);
-      }
+      await printOrder(order);
 
       await axios.put(`${API_BASE_URL}/api/orders/${order._id}/printed`);
 
@@ -99,7 +110,10 @@ async function checkOrders() {
 
 console.log('Printer service started');
 console.log(`Backend: ${API_BASE_URL}`);
-console.log(`Printer: ${PRINTER_NAME}`);
+console.log(`Mode: ${PRINTER_MODE}`);
+console.log(`Type: ${PRINTER_TYPE}`);
+console.log(`Printer Name: ${PRINTER_NAME}`);
+console.log(`Printer IP: ${PRINTER_IP}`);
 console.log(`Checking every ${CHECK_INTERVAL / 1000} seconds`);
 
 checkOrders();
