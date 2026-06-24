@@ -71,17 +71,28 @@ async function printOrder(order) {
 
   const filePath = path.join(__dirname, `order-${order.orderNumber}.txt`);
 
-fs.writeFileSync(filePath, receiptText, 'utf8');
+  fs.writeFileSync(filePath, receiptText, 'utf8');
 
-await print(filePath, {
-  printer: PRINTER_NAME,
-  options: [
-    '-o fit-to-page=false',
-    '-o scaling=100'
-  ]
-});
+  const { exec } = require('child_process');
 
-  fs.unlinkSync(filePath);
+  await new Promise((resolve, reject) => {
+    const command = `notepad /p "${filePath}"`;
+
+    exec(command, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+
+  setTimeout(() => {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }, 5000);
 }
 
 async function checkOrders() {
