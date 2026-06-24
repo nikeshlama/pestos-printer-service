@@ -10,41 +10,8 @@ const PRINTER_NAME = process.env.PRINTER_NAME || 'EPSON TM-T88V Receipt';
 const CHECK_INTERVAL = Number(process.env.CHECK_INTERVAL || 5000);
 
 function buildReceiptText(order) {
-  const width = 32;
-  const line = '-'.repeat(width);
-
+  const line = '------------------------';
   const money = (num) => `$${Number(num || 0).toFixed(2)}`;
-
-  const center = (text) => {
-    text = String(text);
-    const spaces = Math.floor((width - text.length) / 2);
-    return ' '.repeat(Math.max(0, spaces)) + text;
-  };
-
-  const row = (left, right) => {
-    left = String(left);
-    right = String(right);
-    const spaces = width - left.length - right.length;
-    return left + ' '.repeat(Math.max(1, spaces)) + right;
-  };
-
-  const wrapText = (text, maxLength = 20) => {
-    const words = String(text).split(' ');
-    const lines = [];
-    let current = '';
-
-    words.forEach((word) => {
-      if ((current + ' ' + word).trim().length <= maxLength) {
-        current = (current + ' ' + word).trim();
-      } else {
-        lines.push(current);
-        current = word;
-      }
-    });
-
-    if (current) lines.push(current);
-    return lines;
-  };
 
   const date = new Date(order.createdAt);
   const dateText = date.toLocaleDateString();
@@ -55,9 +22,9 @@ function buildReceiptText(order) {
 
   let text = '';
 
-  text += row('', `${dateText} ${timeText}`) + '\n';
-  text += center("PESTO'S RESTAURANT") + '\n';
-  text += center('ROOM SERVICE') + '\n';
+  text += "PESTO'S RESTAURANT\n";
+  text += "ROOM SERVICE\n";
+  text += `${dateText} ${timeText}\n`;
   text += line + '\n';
 
   text += `Order #: ${order.orderNumber}\n`;
@@ -65,40 +32,28 @@ function buildReceiptText(order) {
   text += `Guest: ${order.guestName}\n`;
   text += line + '\n';
 
-  text += row('ITEM', 'AMOUNT') + '\n';
-  text += line + '\n';
+  text += 'ITEMS\n';
 
   order.items.forEach((item) => {
     const itemTotal = Number(item.price) * Number(item.quantity);
-    const itemLines = wrapText(`${item.quantity} x ${item.name}`, 22);
-
-    itemLines.forEach((lineText, index) => {
-      if (index === itemLines.length - 1) {
-        text += row(lineText, money(itemTotal)) + '\n';
-      } else {
-        text += lineText + '\n';
-      }
-    });
+    text += `${item.quantity} x ${item.name}\n`;
+    text += `${money(itemTotal)}\n`;
   });
 
   text += line + '\n';
-  text += row('Subtotal', money(order.subtotal)) + '\n';
-  text += row('Gratuity', money(order.gratuity)) + '\n';
-  text += row('Tax', money(order.tax)) + '\n';
-  text += line + '\n';
-  text += row('TOTAL', money(order.total)) + '\n';
+  text += `Subtotal: ${money(order.subtotal)}\n`;
+  text += `Gratuity: ${money(order.gratuity)}\n`;
+  text += `Tax: ${money(order.tax)}\n`;
+  text += `TOTAL: ${money(order.total)}\n`;
   text += line + '\n';
 
   if (order.message && order.message.trim()) {
-    text += 'Message:\n';
-    wrapText(order.message.trim(), 32).forEach((msgLine) => {
-      text += msgLine + '\n';
-    });
+    text += 'MESSAGE\n';
+    text += `${order.message.trim()}\n`;
     text += line + '\n';
   }
 
-  text += center('Thank you!') + '\n';
-  text += '\n\n';
+  text += 'Thank you!\n\n';
 
   return text;
 }
