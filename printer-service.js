@@ -71,11 +71,15 @@ async function printOrder(order) {
 
   const filePath = path.join(__dirname, `order-${order.orderNumber}.txt`);
 
-  fs.writeFileSync(filePath, receiptText, 'utf8');
+fs.writeFileSync(filePath, receiptText, 'utf8');
 
-  await print(filePath, {
-    printer: PRINTER_NAME
-  });
+await print(filePath, {
+  printer: PRINTER_NAME,
+  options: [
+    '-o fit-to-page=false',
+    '-o scaling=100'
+  ]
+});
 
   fs.unlinkSync(filePath);
 }
