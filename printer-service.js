@@ -3,7 +3,7 @@ require('dotenv').config();
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { print } = require('pdf-to-printer');
+const { exec } = require('child_process');
 
 const API_BASE_URL = process.env.API_BASE_URL;
 const PRINTER_NAME = process.env.PRINTER_NAME || 'EPSON TM-T88V Receipt';
@@ -16,6 +16,7 @@ function buildReceiptText(order) {
   const money = (num) => `$${Number(num || 0).toFixed(2)}`;
 
   const center = (text) => {
+    text = String(text);
     const spaces = Math.floor((width - text.length) / 2);
     return ' '.repeat(Math.max(0, spaces)) + text;
   };
@@ -27,34 +28,59 @@ function buildReceiptText(order) {
     return left + ' '.repeat(Math.max(1, spaces)) + right;
   };
 
+  const wrapText = (text, maxLength = 20) => {
+    const words = String(text).split(' ');
+    const lines = [];
+    let current = '';
+
+    words.forEach((word) => {
+      if ((current + ' ' + word).trim().length <= maxLength) {
+        current = (current + ' ' + word).trim();
+      } else {
+        lines.push(current);
+        current = word;
+      }
+    });
+
+    if (current) lines.push(current);
+    return lines;
+  };
+
+  const date = new Date(order.createdAt);
+  const dateText = date.toLocaleDateString();
+  const timeText = date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
+  });
+
   let text = '';
 
-  text += center('PESTOS EATERY') + '\n';
+  text += row('', `${dateText} ${timeText}`) + '\n';
+  text += center("PESTO'S RESTAURANT") + '\n';
   text += center('ROOM SERVICE') + '\n';
-  text += line + '\n';
-  text += center('ORDER TICKET') + '\n';
   text += line + '\n';
 
   text += `Order #: ${order.orderNumber}\n`;
   text += `Room: ${order.roomNumber}\n`;
   text += `Guest: ${order.guestName}\n`;
-  text += `Time: ${new Date(order.createdAt).toLocaleString()}\n`;
   text += line + '\n';
 
-  text += 'ITEMS\n';
+  text += row('ITEM', 'AMOUNT') + '\n';
+  text += line + '\n';
 
-  order.items.forEach(item => {
+  order.items.forEach((item) => {
     const itemTotal = Number(item.price) * Number(item.quantity);
-    text += `${item.quantity} x ${item.name}\n`;
-    text += row('', money(itemTotal)) + '\n';
+    const itemLines = wrapText(`${item.quantity} x ${item.name}`, 22);
+
+    itemLines.forEach((lineText, index) => {
+      if (index === itemLines.length - 1) {
+        text += row(lineText, money(itemTotal)) + '\n';
+      } else {
+        text += lineText + '\n';
+      }
+    });
   });
 
-  if (order.message) {
-    text += 'MESSAGE\n';
-    text += `${order.message}\n`;
-    text += line + '\n';
-  }
-  
   text += line + '\n';
   text += row('Subtotal', money(order.subtotal)) + '\n';
   text += row('Gratuity', money(order.gratuity)) + '\n';
@@ -63,32 +89,30 @@ function buildReceiptText(order) {
   text += row('TOTAL', money(order.total)) + '\n';
   text += line + '\n';
 
+  if (order.message && order.message.trim()) {
+    text += 'Message:\n';
+    wrapText(order.message.trim(), 32).forEach((msgLine) => {
+      text += msgLine + '\n';
+    });
+    text += line + '\n';
+  }
 
-  text += center('Thank you') + '\n';
-  text += '\n\n\n';
+  text += center('Thank you!') + '\n';
+  text += '\n\n';
 
   return text;
 }
 
 async function printOrder(order) {
   const receiptText = buildReceiptText(order);
-
   const filePath = path.join(__dirname, `order-${order.orderNumber}.txt`);
 
   fs.writeFileSync(filePath, receiptText, 'utf8');
 
-  const { exec } = require('child_process');
-
   await new Promise((resolve, reject) => {
-    const command = `notepad /p "${filePath}"`;
-
-    exec(command, (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
+    exec(`notepad /p "${filePath}"`, (error) => {
+      if (error) reject(error);
+      else resolve();
     });
   });
 
