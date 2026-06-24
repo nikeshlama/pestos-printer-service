@@ -6,12 +6,10 @@ const path = require('path');
 const { exec } = require('child_process');
 
 const API_BASE_URL = process.env.API_BASE_URL;
-const PRINTER_NAME = process.env.PRINTER_NAME || 'EPSON TM-T88V Receipt';
 const CHECK_INTERVAL = Number(process.env.CHECK_INTERVAL || 5000);
 
 function buildReceiptText(order) {
   const money = (num) => `$${Number(num || 0).toFixed(2)}`;
-  const line = '------------------------------';
 
   const date = new Date(order.createdAt);
   const dateText = date.toLocaleDateString();
@@ -23,48 +21,31 @@ function buildReceiptText(order) {
   let text = '';
 
   text += "PESTO'S RESTAURANT\n";
-  text += 'ROOM SERVICE\n';
-  text += `${dateText} ${timeText}\n`;
-  text += line + '\n';
+  text += "ROOM SERVICE\n";
+  text += `${dateText} ${timeText}\n\n`;
 
   text += `Order #: ${order.orderNumber}\n`;
   text += `Room: ${order.roomNumber}\n`;
-  text += `Guest: ${order.guestName}\n`;
-  text += line + '\n';
+  text += `Guest: ${order.guestName}\n\n`;
 
-  text += 'QTY ITEM              PRICE\n';
-  text += line + '\n';
+  text += 'ITEMS\n';
 
   order.items.forEach((item) => {
-    const qty = String(item.quantity).padEnd(4);
+    const itemTotal = Number(item.price) * Number(item.quantity);
 
-    let itemName = String(item.name || '');
-
-    if (itemName.length > 16) {
-      itemName = itemName.substring(0, 16);
-    }
-
-    itemName = itemName.padEnd(16);
-
-    const itemTotal = money(
-      Number(item.price) * Number(item.quantity)
-    ).padStart(8);
-
-    text += `${qty}${itemName}${itemTotal}\n`;
+    text += `${item.quantity} x ${item.name}\n`;
+    text += `Price: ${money(itemTotal)}\n`;
   });
 
-  text += line + '\n';
-  text += 'Subtotal'.padEnd(22) + money(order.subtotal).padStart(8) + '\n';
-  text += 'Gratuity'.padEnd(22) + money(order.gratuity).padStart(8) + '\n';
-  text += 'Tax'.padEnd(22) + money(order.tax).padStart(8) + '\n';
-  text += line + '\n';
-  text += 'TOTAL'.padEnd(22) + money(order.total).padStart(8) + '\n';
-  text += line + '\n';
+  text += '\n';
+  text += `Subtotal: ${money(order.subtotal)}\n`;
+  text += `Gratuity: ${money(order.gratuity)}\n`;
+  text += `Tax: ${money(order.tax)}\n`;
+  text += `TOTAL: ${money(order.total)}\n\n`;
 
   if (order.message && order.message.trim()) {
     text += 'MESSAGE\n';
-    text += order.message.trim() + '\n';
-    text += line + '\n';
+    text += `${order.message.trim()}\n\n`;
   }
 
   text += 'Thank you!\n';
@@ -120,7 +101,6 @@ async function checkOrders() {
 
 console.log('Printer service started');
 console.log(`Backend: ${API_BASE_URL}`);
-console.log(`Printer Name: ${PRINTER_NAME}`);
 console.log(`Checking every ${CHECK_INTERVAL / 1000} seconds`);
 
 checkOrders();
