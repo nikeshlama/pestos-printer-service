@@ -10,15 +10,21 @@ const PRINTER_NAME = process.env.PRINTER_NAME || 'EPSON TM-T88V Receipt';
 const CHECK_INTERVAL = Number(process.env.CHECK_INTERVAL || 5000);
 
 function buildReceiptText(order) {
-  const line = '----------------------------------------';
-  const width = 40;
+  const width = 32;
+  const line = '-'.repeat(width);
 
-  const center = (text) =>
-    text.padStart(Math.floor((width + text.length) / 2)).padEnd(width);
+  const money = (num) => `$${Number(num || 0).toFixed(2)}`;
 
-  const leftRight = (left, right) => {
-    const space = width - left.length - right.length;
-    return left + ' '.repeat(Math.max(1, space)) + right;
+  const center = (text) => {
+    const spaces = Math.floor((width - text.length) / 2);
+    return ' '.repeat(Math.max(0, spaces)) + text;
+  };
+
+  const row = (left, right) => {
+    left = String(left);
+    right = String(right);
+    const spaces = width - left.length - right.length;
+    return left + ' '.repeat(Math.max(1, spaces)) + right;
   };
 
   let text = '';
@@ -26,41 +32,39 @@ function buildReceiptText(order) {
   text += center('PESTOS EATERY') + '\n';
   text += center('ROOM SERVICE') + '\n';
   text += line + '\n';
-  text += center('ROOM SERVICE ORDER') + '\n';
-  text += line + '\n\n';
+  text += center('ORDER TICKET') + '\n';
+  text += line + '\n';
 
   text += `Order #: ${order.orderNumber}\n`;
   text += `Room: ${order.roomNumber}\n`;
   text += `Guest: ${order.guestName}\n`;
-  text += `Time: ${new Date(order.createdAt).toLocaleString()}\n\n`;
+  text += `Time: ${new Date(order.createdAt).toLocaleString()}\n`;
+  text += line + '\n';
 
-  text += line + '\n';
-  text += leftRight('ITEM', 'AMOUNT') + '\n';
-  text += line + '\n';
+  text += 'ITEMS\n';
 
   order.items.forEach(item => {
     const itemTotal = Number(item.price) * Number(item.quantity);
     text += `${item.quantity} x ${item.name}\n`;
-    text += leftRight('', `$${itemTotal.toFixed(2)}`) + '\n';
+    text += row('', money(itemTotal)) + '\n';
   });
 
-  text += line + '\n';
-  text += leftRight('Subtotal', `$${Number(order.subtotal).toFixed(2)}`) + '\n';
-  text += leftRight('Gratuity', `$${Number(order.gratuity || 0).toFixed(2)}`) + '\n';
-  text += leftRight('Tax', `$${Number(order.tax).toFixed(2)}`) + '\n';
-  text += line + '\n';
-  text += leftRight('TOTAL', `$${Number(order.total).toFixed(2)}`) + '\n';
-  text += line + '\n';
-
   if (order.message) {
-    text += '\nMESSAGE\n';
-    text += order.message + '\n';
+    text += 'MESSAGE\n';
+    text += `${order.message}\n`;
     text += line + '\n';
   }
+  
+  text += line + '\n';
+  text += row('Subtotal', money(order.subtotal)) + '\n';
+  text += row('Gratuity', money(order.gratuity)) + '\n';
+  text += row('Tax', money(order.tax)) + '\n';
+  text += line + '\n';
+  text += row('TOTAL', money(order.total)) + '\n';
+  text += line + '\n';
 
-  text += '\n';
+
   text += center('Thank you') + '\n';
-  text += center('Please call if you need anything') + '\n';
   text += '\n\n\n';
 
   return text;
