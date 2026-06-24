@@ -11,6 +11,7 @@ const CHECK_INTERVAL = Number(process.env.CHECK_INTERVAL || 5000);
 
 function buildReceiptText(order) {
   const money = (num) => `$${Number(num || 0).toFixed(2)}`;
+  const line = '------------------------------';
 
   const date = new Date(order.createdAt);
   const dateText = date.toLocaleDateString();
@@ -19,45 +20,51 @@ function buildReceiptText(order) {
     minute: '2-digit'
   });
 
-  const shorten = (text, length) => {
-    text = String(text || '');
-    return text.length > length ? text.substring(0, length) : text;
-  };
-
-  const row = (left, middle, right) => {
-    const leftText = shorten(left, 17).padEnd(17);
-    const midText = String(middle).padStart(3);
-    const rightText = String(right).padStart(8);
-    return `${leftText}${midText}${rightText}`;
-  };
-
   let text = '';
 
   text += "PESTO'S RESTAURANT\n";
-  text += "ROOM SERVICE\n";
-  text += `${dateText} ${timeText}\n\n`;
+  text += 'ROOM SERVICE\n';
+  text += `${dateText} ${timeText}\n`;
+  text += line + '\n';
 
   text += `Order #: ${order.orderNumber}\n`;
   text += `Room: ${order.roomNumber}\n`;
-  text += `Guest: ${order.guestName}\n\n`;
+  text += `Guest: ${order.guestName}\n`;
+  text += line + '\n';
 
-  text += 'ITEM              QTY   PRICE\n';
-  text += '----------------------------\n';
+  text += 'QTY ITEM              PRICE\n';
+  text += line + '\n';
 
   order.items.forEach((item) => {
-    const itemTotal = Number(item.price) * Number(item.quantity);
-    text += row(item.name, item.quantity, money(itemTotal)) + '\n';
+    const qty = String(item.quantity).padEnd(4);
+
+    let itemName = String(item.name || '');
+
+    if (itemName.length > 16) {
+      itemName = itemName.substring(0, 16);
+    }
+
+    itemName = itemName.padEnd(16);
+
+    const itemTotal = money(
+      Number(item.price) * Number(item.quantity)
+    ).padStart(8);
+
+    text += `${qty}${itemName}${itemTotal}\n`;
   });
 
-  text += '\n';
-  text += 'Subtotal: '.padEnd(20) + money(order.subtotal) + '\n';
-  text += 'Gratuity: '.padEnd(20) + money(order.gratuity) + '\n';
-  text += 'Tax: '.padEnd(20) + money(order.tax) + '\n';
-  text += 'TOTAL: '.padEnd(20) + money(order.total) + '\n\n';
+  text += line + '\n';
+  text += 'Subtotal'.padEnd(22) + money(order.subtotal).padStart(8) + '\n';
+  text += 'Gratuity'.padEnd(22) + money(order.gratuity).padStart(8) + '\n';
+  text += 'Tax'.padEnd(22) + money(order.tax).padStart(8) + '\n';
+  text += line + '\n';
+  text += 'TOTAL'.padEnd(22) + money(order.total).padStart(8) + '\n';
+  text += line + '\n';
 
   if (order.message && order.message.trim()) {
     text += 'MESSAGE\n';
-    text += `${order.message.trim()}\n\n`;
+    text += order.message.trim() + '\n';
+    text += line + '\n';
   }
 
   text += 'Thank you!\n';
