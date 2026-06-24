@@ -19,6 +19,18 @@ function buildReceiptText(order) {
     minute: '2-digit'
   });
 
+  const shorten = (text, length) => {
+    text = String(text || '');
+    return text.length > length ? text.substring(0, length) : text;
+  };
+
+  const row = (left, middle, right) => {
+    const leftText = shorten(left, 17).padEnd(17);
+    const midText = String(middle).padStart(3);
+    const rightText = String(right).padStart(8);
+    return `${leftText}${midText}${rightText}`;
+  };
+
   let text = '';
 
   text += "PESTO'S RESTAURANT\n";
@@ -29,19 +41,19 @@ function buildReceiptText(order) {
   text += `Room: ${order.roomNumber}\n`;
   text += `Guest: ${order.guestName}\n\n`;
 
-  text += 'ITEMS\n';
+  text += 'ITEM              QTY   PRICE\n';
+  text += '----------------------------\n';
 
   order.items.forEach((item) => {
     const itemTotal = Number(item.price) * Number(item.quantity);
-    text += `${item.quantity} x ${item.name}\n`;
-    text += `${money(itemTotal)}\n`;
+    text += row(item.name, item.quantity, money(itemTotal)) + '\n';
   });
 
   text += '\n';
-  text += `Subtotal: ${money(order.subtotal)}\n`;
-  text += `Gratuity: ${money(order.gratuity)}\n`;
-  text += `Tax: ${money(order.tax)}\n`;
-  text += `TOTAL: ${money(order.total)}\n\n`;
+  text += 'Subtotal: '.padEnd(20) + money(order.subtotal) + '\n';
+  text += 'Gratuity: '.padEnd(20) + money(order.gratuity) + '\n';
+  text += 'Tax: '.padEnd(20) + money(order.tax) + '\n';
+  text += 'TOTAL: '.padEnd(20) + money(order.total) + '\n\n';
 
   if (order.message && order.message.trim()) {
     text += 'MESSAGE\n';
