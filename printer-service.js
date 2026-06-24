@@ -33,8 +33,9 @@ function buildReceiptText(order) {
   order.items.forEach((item) => {
     const itemTotal = Number(item.price) * Number(item.quantity);
 
-    text += `${item.quantity} -- ${item.name}\n`;
+    text += `${item.quantity} x ${item.name}\n`;
     text += `Price: ${money(itemTotal)}\n`;
+    text += '\n';
   });
 
   text += '\n';
