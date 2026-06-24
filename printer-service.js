@@ -10,7 +10,6 @@ const PRINTER_NAME = process.env.PRINTER_NAME || 'EPSON TM-T88V Receipt';
 const CHECK_INTERVAL = Number(process.env.CHECK_INTERVAL || 5000);
 
 function buildReceiptText(order) {
-  const line = '------------------------';
   const money = (num) => `$${Number(num || 0).toFixed(2)}`;
 
   const date = new Date(order.createdAt);
@@ -24,13 +23,11 @@ function buildReceiptText(order) {
 
   text += "PESTO'S RESTAURANT\n";
   text += "ROOM SERVICE\n";
-  text += `${dateText} ${timeText}\n`;
-  text += line + '\n';
+  text += `${dateText} ${timeText}\n\n`;
 
   text += `Order #: ${order.orderNumber}\n`;
   text += `Room: ${order.roomNumber}\n`;
-  text += `Guest: ${order.guestName}\n`;
-  text += line + '\n';
+  text += `Guest: ${order.guestName}\n\n`;
 
   text += 'ITEMS\n';
 
@@ -40,20 +37,18 @@ function buildReceiptText(order) {
     text += `${money(itemTotal)}\n`;
   });
 
-  text += line + '\n';
+  text += '\n';
   text += `Subtotal: ${money(order.subtotal)}\n`;
   text += `Gratuity: ${money(order.gratuity)}\n`;
   text += `Tax: ${money(order.tax)}\n`;
-  text += `TOTAL: ${money(order.total)}\n`;
-  text += line + '\n';
+  text += `TOTAL: ${money(order.total)}\n\n`;
 
   if (order.message && order.message.trim()) {
     text += 'MESSAGE\n';
-    text += `${order.message.trim()}\n`;
-    text += line + '\n';
+    text += `${order.message.trim()}\n\n`;
   }
 
-  text += 'Thank you!\n\n';
+  text += 'Thank you!\n';
 
   return text;
 }
