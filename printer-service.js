@@ -58,6 +58,9 @@ if (item.sideUpgrade) {
 if (item.dressing) {
   text += `   **Dressing: ${item.dressing}**\n`;
 }
+
+text += `Price: ${money(itemTotal)}\n`;
+    text += '\n';
   });
 
   text += '\n';
