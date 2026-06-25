@@ -113,6 +113,7 @@ async function checkOrders() {
 
     for (const order of orders) {
       console.log(`Found order #${order.orderNumber}`);
+      console.log(JSON.stringify(order.items, null, 2));
 
       await printOrder(order);
 
