@@ -36,7 +36,7 @@ function buildReceiptText(order) {
     text += `${item.quantity} x ${item.name}\n`;
 
 if (item.glutenFree) {
-  text += `   **Gluten Free**\n`;
+  text += `   **GLUTEN FREE**\n`;
 }
 
 if (item.sauce) {
@@ -45,6 +45,18 @@ if (item.sauce) {
 
 if (item.secondPound) {
   text += `   **+ 2nd Pound Wings**\n`;
+}
+
+if (item.side) {
+  text += `   **Side: ${item.side}**\n`;
+}
+
+if (item.sideUpgrade) {
+  text += `   **Upgrade: ${item.sideUpgrade}**\n`;
+}
+
+if (item.dressing) {
+  text += `   **Dressing: ${item.dressing}**\n`;
 }
 
 text += `Price: ${money(itemTotal)}\n`;
