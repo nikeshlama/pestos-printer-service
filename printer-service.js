@@ -34,7 +34,12 @@ function buildReceiptText(order) {
     const itemTotal = Number(item.price) * Number(item.quantity);
 
     text += `${item.quantity} x ${item.name}\n`;
-    text += `Price: ${money(itemTotal)}\n`;
+
+    if (item.glutenFree) {
+    text += `** GLUTEN FREE **\n`;
+   }
+
+text += `Price: ${money(itemTotal)}\n`;
     text += '\n';
   });
 
