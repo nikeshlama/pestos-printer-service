@@ -66,6 +66,14 @@ if (item.doneness) {
   text += `   Steak: ${item.doneness}\n`;
 }
 
+if (item.burgerCheese) {
+  text += `   Add Cheese\n`;
+}
+
+if (item.burgerToppings) {
+  text += `   Toppings: ${item.burgerToppings}\n`;
+}
+
     text += '\n';
   });
 
