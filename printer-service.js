@@ -58,6 +58,9 @@ if (item.sideUpgrade) {
 if (item.dressing) {
   text += `   **Dressing: ${item.dressing}**\n`;
 }
+if (item.saladProtein) {
+  text += `   **Add-on: ${item.saladProtein}**\n`;
+}
 
     text += '\n';
   });
