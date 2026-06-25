@@ -47,7 +47,7 @@ if (item.secondPound) {
   text += `   **+ 2nd Pound Wings**\n`;
 }
 
-if (item.side) {
+if (item.side && !item.sideUpgrade) {
   text += `   **Side: ${item.side}**\n`;
 }
 
