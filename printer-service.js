@@ -40,30 +40,30 @@ if (item.glutenFree) {
 }
 
 if (item.sauce) {
-  text += `   **Sauce: ${item.sauce}**\n`;
+  text += `   Sauce: ${item.sauce}\n`;
 }
 
 if (item.secondPound) {
-  text += `   **+ 2nd Pound Wings**\n`;
+  text += `   + 2nd Pound Wings\n`;
 }
 
 if (item.side && !item.sideUpgrade) {
-  text += `   **Side: ${item.side}**\n`;
+  text += `   Side: ${item.side}\n`;
 }
 
 if (item.sideUpgrade) {
-  text += `   **Upgrade: ${item.sideUpgrade}**\n`;
+  text += `   Upgrade: ${item.sideUpgrade}\n`;
 }
 
 if (item.dressing) {
-  text += `   **Dressing: ${item.dressing}**\n`;
+  text += `   Dressing: ${item.dressing}\n`;
 }
 if (item.saladProtein) {
-  text += `   **Add-on: ${item.saladProtein}**\n`;
+  text += `   Add-on: ${item.saladProtein}\n`;
 }
 
 if (item.doneness) {
-  text += `   **Steak: ${item.doneness}**\n`;
+  text += `   Steak: ${item.doneness}\n`;
 }
 
     text += '\n';
