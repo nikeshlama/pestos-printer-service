@@ -62,6 +62,10 @@ if (item.saladProtein) {
   text += `   **Add-on: ${item.saladProtein}**\n`;
 }
 
+if (item.doneness) {
+  text += `   **Steak: ${item.doneness}**\n`;
+}
+
     text += '\n';
   });
 
